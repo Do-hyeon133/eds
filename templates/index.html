@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Real-time Dashboard</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            background-color: #444;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .metric {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .value {
+            font-size: 36px;
+            margin-bottom: 5px;
+        }
+        .label {
+            font-size: 18px;
+            color: #bbb;
+        }
+        .clock {
+            grid-column: span 4;
+            text-align: center;
+            font-size: 48px;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="clock" id="clock">00:00:00</div>
+        <div class="metric">
+            <div class="value" id="TOTAL-MW.UNIT0@OVATION">N/A</div>
+            <div class="label">TOTAL-MW.UNIT0@OVATION</div>
+        </div>
+        <div class="metric">
+            <div class="value" id="G1-DWATT.UNIT0@OVATION">N/A</div>
+            <div class="label">G1-DWATT.UNIT0@OVATION</div>
+        </div>
+        <div class="metric">
+            <div class="value" id="G2-DWATT.UNIT0@OVATION">N/A</div>
+            <div class="label">G2-DWATT.UNIT0@OVATION</div>
+        </div>
+        <div class="metric">
+            <div class="value" id="GEN-W.UNIT0@OVATION">N/A</div>
+            <div class="label">GEN-W.UNIT0@OVATION</div>
+        </div>
+        <div class="metric">
+            <div class="value" id="TOTAL-HEAT.UNIT0@OVATION">N/A</div>
+            <div class="label">TOTAL-HEAT.UNIT0@OVATION</div>
+        </div>
+        <div class="metric">
+            <div class="value" id="CHP-HEAT.UNIT0@OVATION">N/A</div>
+            <div class="label">CHP-HEAT.UNIT0@OVATION</div>
+        </div>
+        <div class="metric">
+            <div class="value" id="PLB-HEAT.UNIT0@OVATION">N/A</div>
+            <div class="label">PLB-HEAT.UNIT0@OVATION</div>
+        </div>
+        <div class="metric">
+            <div class="value" id="HE-CALORY-TOTAL.UNIT0@OVATION">N/A</div>
+            <div class="label">HE-CALORY-TOTAL.UNIT0@OVATION</div>
+        </div>
+        <div class="metric">
+            <div class="value" id="SUPPLY-HEAT.UNIT0@OVATION">N/A</div>
+            <div class="label">SUPPLY-HEAT.UNIT0@OVATION</div>
+        </div>
+        <div class="metric">
+            <div class="value" id="WHOLESALE.UNIT0@OVATION">N/A</div>
+            <div class="label">WHOLESALE.UNIT0@OVATION</div>
+        </div>
+        <div class="metric">
+            <div class="value" id="TIT-4047.UNIT0@OVATION">N/A</div>
+            <div class="label">TIT-4047.UNIT0@OVATION</div>
+        </div>
+        <div class="metric">
+            <div class="value" id="ACC-HEAT.UNIT0@OVATION">N/A</div>
+            <div class="label">ACC-HEAT.UNIT0@OVATION</div>
+        </div>
+        <div class="metric">
+            <div class="value" id="NO1-NOX.UNIT0@OVATION">N/A</div>
+            <div class="label">NO1-NOX.UNIT0@OVATION</div>
+        </div>
+        <div class="metric">
+            <div class="value" id="NO2-NOX.UNIT0@OVATION">N/A</div>
+            <div class="label">NO2-NOX.UNIT0@OVATION</div>
+        </div>
+        <div class="metric">
+            <div class="value" id="CP-DP.UNIT0@OVATION">N/A</div>
+            <div class="label">CP-DP.UNIT0@OVATION</div>
+        </div>
+        <div class="metric">
+            <div class="value" id="TIT-4037.UNIT0@OVATION">N/A</div>
+            <div class="label">TIT-4037.UNIT0@OVATION</div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+            socket.on('connect', function() {
+                console.log('Connected to server');
+            });
+
+            socket.on('live_data', function(data) {
+                console.log('Received data:', data);
+                for (var key in data) {
+                    if (data.hasOwnProperty(key)) {
+                        var value = data[key];
+                        console.log('Updating:', key, 'with value:', value);
+                        var elementId = key.replace(/[@\.]/g, '\\$&');
+                        if (value === "0") { // 값이 0인 경우 "0"으로 표시
+                            $('#' + elementId).text("0");
+                        } else if (value) {
+                            $('#' + elementId).text(value);
+                        } else {
+                            $('#' + elementId).text('N/A');
+                        }
+                    }
+                }
+            });
+
+            function updateClock() {
+                var now = new Date();
+                var hours = String(now.getHours()).padStart(2, '0');
+                var minutes = String(now.getMinutes()).padStart(2, '0');
+                var seconds = String(now.getSeconds()).padStart(2, '0');
+                $('#clock').text(hours + ':' + minutes + ':' + seconds);
+            }
+
+            setInterval(updateClock, 1000);
+            updateClock();  // 초기 실행
+        });
+    </script>
+</body>
+</html>

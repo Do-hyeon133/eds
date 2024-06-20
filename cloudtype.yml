@@ -1,0 +1,11 @@
+name: eds_env
+processes:
+  web: flask run --host=0.0.0.0 --port=5000
+dependencies:
+  - python
+env:
+  PYTHONUNBUFFERED: 1
+  PYTHONPATH: "."
+ports:
+  - 5000:5000
+
